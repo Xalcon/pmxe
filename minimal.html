@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #output {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <input type="file" oninput="onFileSelected(event)" />
+        <pre id="output"></pre>
+    </body>
+    <script>
+        Module = {
+            print: (function() {
+                var element = document.getElementById('output');
+                return function(text) {
+                    element.innerHTML += text.replace('\n', '<br>', 'g') + '<br>';
+                };
+            })(),
+            printErr: (function() {
+                var element = document.getElementById('output');
+                return function(text) {
+                    element.innerHTML += text.replace('\n', '<br>', 'g') + '<br>';
+                };
+            })(),
+            canvas: document.getElementById('canvas')
+        }
+
+        function onFileSelected(event)
+        {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event)
+            {
+                console.log("Writing to VFS...")
+                Module.FS_createDataFile(".", file.name, reader.result, true, true);
+                let ptr = allocate(intArrayFromString(file.name), 'i8', ALLOC_NORMAL)
+                Module._ProcessFile(ptr);
+                _free(ptr);
+            }
+            
+            reader.readAsBinaryString(file);
+        }
+    </script>
+    <script src="main.js"></script>
+</html>

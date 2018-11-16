@@ -9,6 +9,10 @@
     </head>
     <body>
         <input type="file" oninput="onFileSelected(event)" />
+        <div>
+            <label for="memUse">Memory Usage:</label>
+            <span id="memUse"></span> kb
+        </div>
         <pre id="output"></pre>
     </body>
     <script>
@@ -25,7 +29,7 @@
                     element.innerHTML += text.replace('\n', '<br>', 'g') + '<br>';
                 };
             })(),
-            canvas: document.getElementById('canvas')
+            MAX_MEMORY: 512 * 1024 * 1024 // 512 MB Heap
         }
 
         function onFileSelected(event)
@@ -35,14 +39,24 @@
             reader.onload = function(event)
             {
                 console.log("Writing to VFS...")
-                Module.FS_createDataFile(".", file.name, reader.result, true, true);
+                let data = new Uint8Array(reader.result);
+                Module.FS_createDataFile(".", file.name, data, true, true);
                 let ptr = allocate(intArrayFromString(file.name), 'i8', ALLOC_NORMAL)
                 Module._ProcessFile(ptr);
+                //Module._Unzip(ptr);
+                console.log("EMS done");
                 _free(ptr);
             }
             
-            reader.readAsBinaryString(file);
+            reader.readAsArrayBuffer(file);
         }
+
+        function refreshStats()
+        {
+            document.querySelector("#memUse").innerHTML = Module.buffer.byteLength / 1024;
+        }
+
+        setInterval(refreshStats, 250);
     </script>
     <script src="main.js"></script>
 </html>

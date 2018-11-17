@@ -5,3 +5,4 @@ out
 
 **/*.vcxproj.filters
 **/*.vcxproj.user
+**/*.DotSettings.user

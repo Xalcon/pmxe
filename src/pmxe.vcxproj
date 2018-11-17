@@ -101,12 +101,31 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pmx\PmxDisplayPane.cpp" />
     <ClCompile Include="pmx\Pmx.cpp" />
+    <ClCompile Include="pmx\PmxBone.cpp" />
+    <ClCompile Include="pmx\PmxGlobalSettings.cpp" />
+    <ClCompile Include="pmx\PmxHelper.cpp" />
+    <ClCompile Include="pmx\PmxJoints.cpp" />
+    <ClCompile Include="pmx\PmxMaterial.cpp" />
+    <ClCompile Include="pmx\PmxMorph.cpp" />
+    <ClCompile Include="pmx\PmxRigidBody.cpp" />
+    <ClCompile Include="pmx\PmxSoftBody.cpp" />
+    <ClCompile Include="pmx\PmxVertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Cxx14Polyfill.hpp" />
-    <ClInclude Include="Helper.hpp" />
+    <ClInclude Include="pmx\PmxDisplayPane.hpp" />
     <ClInclude Include="pmx\Pmx.hpp" />
+    <ClInclude Include="pmx\PmxBone.hpp" />
+    <ClInclude Include="pmx\PmxGlobalSettings.hpp" />
+    <ClInclude Include="pmx\PmxHelper.hpp" />
+    <ClInclude Include="pmx\PmxJoints.hpp" />
+    <ClInclude Include="pmx\PmxMaterial.hpp" />
+    <ClInclude Include="pmx\PmxMorph.hpp" />
+    <ClInclude Include="pmx\PmxRigidBody.hpp" />
+    <ClInclude Include="pmx\PmxSoftBody.hpp" />
+    <ClInclude Include="pmx\PmxTypes.hpp" />
+    <ClInclude Include="pmx\PmxVertex.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

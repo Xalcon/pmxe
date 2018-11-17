@@ -1,8 +1,10 @@
 mkdir out -ErrorAction SilentlyContinue | Out-Null
 
+$cppFiles = (Get-ChildItem -Path .\src -File *.cpp -Recurse | % { $_.FullName } )
+
 em++ `
- -x c++ src/main.cpp src/pmx/Pmx.cpp extern/zip/src/zip.c `
- -std=c++11 `
+ -x c++ $cppFiles `
+ -std=c++14 `
  -g4 `
  -o out/main.js `
  -s WASM=1 `

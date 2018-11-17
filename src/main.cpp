@@ -22,7 +22,7 @@ extern "C" {
         const int totalFileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        Vitriol::Pmx pmx;
+        vitriol::Pmx pmx;
         pmx.Parse(&file);
 
         const int len = file.tellg();

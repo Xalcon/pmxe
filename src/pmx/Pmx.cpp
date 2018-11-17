@@ -3,6 +3,29 @@
 #include "../Cxx14Polyfill.hpp"
 #include "../Helper.hpp"
 
+// Apparently Microsoft forgot to define a symbol for codecvt.
+// Works with /MT only
+#include <locale>
+
+#if _MSC_VER >= 1900
+
+std::string utf16_to_utf8(std::u16string utf16_string)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
+	auto p = reinterpret_cast<const int16_t *>(utf16_string.data());
+	return convert.to_bytes(p, p + utf16_string.size());
+}
+
+#else
+
+std::string utf16_to_utf8(std::u16string utf16_string)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+	return convert.to_bytes(utf16_string);
+}
+
+#endif
+
 namespace Vitriol
 {
     int32_t ReadIndex(std::istream* stream, uint8_t typeSize)
@@ -22,6 +45,7 @@ namespace Vitriol
     {
         uint32_t size;
         stream->read((char*)&size, sizeof(size));
+        if(size == 0) return "";
 
         if(sourceEncoding == PmxStringEncoding::UTF16_LE)
         {
@@ -33,8 +57,9 @@ namespace Vitriol
             stream->read((char*)buffer.data(), size);
 
             std::u16string source(buffer.begin(), buffer.end());
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-            std::string dst = convert.to_bytes(buffer.data());
+            //std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+            //std::string dst = convert.to_bytes(buffer.data());
+			std::string dst = utf16_to_utf8(source);
             return dst;
         }
         else if(sourceEncoding == PmxStringEncoding::UTF8)
@@ -133,6 +158,41 @@ namespace Vitriol
         stream->read(reinterpret_cast<char*>(&this->edgeScale), sizeof(this->edgeScale));
     }
 
+    void PmxMaterial::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+		auto loc = stream->tellg();
+        this->localName = ReadString(stream, settings.textEncoding);
+        this->universalName = ReadString(stream, settings.textEncoding);
+        // read next bytes in one batch
+        /*const int size = sizeof(this->diffuseColor) 
+                       + sizeof(this->specularColor)
+                       + sizeof(this->specularStrength)
+                       + sizeof(this->ambientColor)
+                       + sizeof(this->flags)
+                       + sizeof(this->edgeColor)
+                       + sizeof(this->edgeScale)
+                       + settings.textureIndexSize * 2 // texture + environment index
+                       + sizeof(this->environmentBlendMode)
+                       + sizeof(this->toonReference);
+        stream->read(reinterpret_cast<char*>(&this->diffuseColor), size);*/
+		stream->read(reinterpret_cast<char*>(&this->diffuseColor), sizeof(this->diffuseColor));
+		stream->read(reinterpret_cast<char*>(&this->specularColor), sizeof(this->specularColor));
+		stream->read(reinterpret_cast<char*>(&this->specularStrength), sizeof(this->specularStrength));
+		stream->read(reinterpret_cast<char*>(&this->ambientColor), sizeof(this->ambientColor));
+		stream->read(reinterpret_cast<char*>(&this->flags), sizeof(this->flags));
+		stream->read(reinterpret_cast<char*>(&this->edgeColor), sizeof(this->edgeColor));
+		stream->read(reinterpret_cast<char*>(&this->edgeScale), sizeof(this->edgeScale));
+		stream->read(reinterpret_cast<char*>(&this->textureIndex), settings.textureIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->environmentIndex), settings.textureIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->environmentBlendMode), sizeof(this->environmentBlendMode));
+		stream->read(reinterpret_cast<char*>(&this->toonReference), sizeof(this->toonReference));
+
+        int toonValueSize = this->toonReference == 1 ? sizeof(uint8_t) : settings.textureIndexSize;
+        stream->read(reinterpret_cast<char*>(&this->toonValue), toonValueSize);
+		this->note = ReadString(stream, settings.textEncoding);
+        stream->read(reinterpret_cast<char*>(&this->surfaceCount), sizeof(this->surfaceCount));
+    }
+
     void Pmx::Parse(std::istream* stream)
     {
         stream->read(this->magic, sizeof(this->magic));
@@ -178,6 +238,16 @@ namespace Vitriol
         {
             std::string texture = ReadString(stream, this->globalSettings.textEncoding);
             this->textures.emplace_back(texture);
+        }
+
+        // read materials
+        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+        this->materials.reserve(count);
+        for(size_t i = 0; i < count; i++)
+        {
+            PmxMaterial material;
+            material.Parse(stream, this->globalSettings);
+            this->materials.emplace_back(material);
         }
     }
 }

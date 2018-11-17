@@ -1,3 +1,7 @@
+#ifndef __CXX14_POLYFILL_H__
+#define __CXX14_POLYFILL_H__
+
+#ifndef _MSC_VER
 #include <cstddef>
 #include <memory>
 #include <type_traits>
@@ -33,3 +37,7 @@ namespace std {
         typename _Unique_if<T>::_Known_bound
         make_unique(Args&&...) = delete;
 }
+
+#endif
+
+#endif 

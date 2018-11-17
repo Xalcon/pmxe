@@ -1,79 +1,18 @@
+#include <cstdio>
 #include <iostream>
 #include <fstream>
-#include <emscripten.h>
 #include "pmx/Pmx.hpp"
-#include "../extern/zip/src/zip.h"
+
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 #ifndef EMSCRIPTEN_KEEPALIVE
 #define EMSCRIPTEN_KEEPALIVE
 #endif
 
-typedef unsigned char byte;
-
-typedef struct text_s {
-	int32_t    size;
-	
-	union encoding_u {
-		uint8_t *    utf8;  // sizeof( uint8_t ) * size
-		int16_t *    utf16; // sizeof( int16_t ) * ( size / 2 )
-	};
-} text_t;
-
-struct PMX_Header
-{
-    char magic[4];
-    float version;
-    byte nGLobals;
-    byte* globals;
-    text_s modelNameLocal;
-    text_s modelNameUniversal;
-    text_s commentLocal;
-    text_s commentUniversal;
-};
-
-int on_extract_entry(const char *filename, void *arg) {
-    static int i = 0;
-    int n = *(int *)arg;
-    printf("Extracted: %s (%d of %d)\n", filename, ++i, n);
-
-    return 1;
-}
-
-int getFileSize(const char* filename)
-{
-    std::ifstream stream;
-    stream.open(filename);
-    stream.seekg(0, std::ios::end);
-    int size = stream.tellg();
-    stream.close();
-    return size;
-}
-
 extern "C" {
-
-    EMSCRIPTEN_KEEPALIVE int Unzip(const char* filePath)
-    {
-        struct zip_t *zip = zip_open(filePath, 0, 'r');
-        int i, n = zip_total_entries(zip);
-        printf("Processing %s (found %d entries)\n", filePath, n);
-        for (i = 0; i < n; ++i)
-        {
-            zip_entry_openbyindex(zip, i);
-            {
-                const char *name = zip_entry_name(zip);
-                int isdir = zip_entry_isdir(zip);
-                unsigned long long size = zip_entry_size(zip);
-                unsigned int crc32 = zip_entry_crc32(zip);
-
-                printf("File: %s - %llu - %d\n", name, size, crc32);
-                emscripten_sleep(1);
-            }
-            zip_entry_close(zip);
-        }
-        zip_close(zip);
-        return i;
-    }
-
+	
     EMSCRIPTEN_KEEPALIVE int ProcessFile(const char* filePath)
     {
         std::ifstream file;
@@ -113,7 +52,19 @@ extern "C" {
         printf("Textures: \n");
         for(int i = 0; i < pmx.textures.size(); i++)
             printf("  %s\n", pmx.textures[i].c_str());
-
+        printf("Materials(%lu): \n", pmx.materials.size());
+        for(int i = 0; i < pmx.materials.size(); i++)
+            printf("  %d: %s\n", i, pmx.materials[i].localName.c_str());
         return 0;
     }
 }
+
+#ifdef  _MSC_VER
+#include <Windows.h>
+void main()
+{
+	SetConsoleOutputCP(65001);
+	ProcessFile(R"(F:\Dev\Emscripten\SAO ver1.2\SAO\Kirito(GGO)\Kirito_x.pmx)");
+	std::cin;
+}
+#endif

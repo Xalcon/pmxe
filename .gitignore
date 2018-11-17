@@ -1,2 +1,7 @@
 .vscode
 out
+**/.vs
+**/Debug
+
+**/*.vcxproj.filters
+**/*.vcxproj.user

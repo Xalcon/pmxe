@@ -428,6 +428,188 @@ namespace Vitriol
             void Parse(std::istream* stream, PmxGlobalSettings settings);
     };
 
+	enum class PmxDisplayFrameType : uint8_t
+	{
+		Bone = 0,
+		Morph = 1,
+	};
+
+	class PmxFrameData
+	{
+	public:
+		PmxDisplayFrameType frameType;
+		int32_t index;
+
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
+	class PmxDisplayData
+	{
+	public:
+		std::string displayNameLocal;
+		std::string displayNameUniversal;
+		uint8_t isSpecialFrame;
+		//int32_t frameCount;
+		std::vector<PmxFrameData> frames;
+
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
+    enum class PmxRigidBodyShapeType : uint8_t
+    {
+        Sphere = 0,
+        Box = 1,
+        Capsule = 2
+    };
+
+    enum class PmxPhysicsMode : uint8_t
+    {
+        FollowBone = 0,
+        Physics = 1,
+        PhysicsAndBone = 2
+    };
+
+    class PmxRigidBodyData
+    {
+        public:
+            std::string nameLocal;
+            std::string nameUniversal;
+            int32_t boneIndex;
+            uint8_t groupId;
+            uint16_t nonCollisionMask;
+            PmxRigidBodyShapeType shapeType;
+            vec3 shapeSize;
+            vec3 shapePosition;
+            vec3 shapeRotation;
+            float mass;
+            float moveAttenuation;
+            float rotationDampening;
+            float repulsion;
+            float frictionForce;
+            PmxPhysicsMode physicsMode;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+	enum class PmxJointType : uint8_t
+	{
+		Spring6DOF = 0,
+		_6DOF = 1,
+		P2P = 2,
+		ConeTwist = 3,
+		Slider = 4,
+		Hinge = 5
+	};
+
+	class PmxJointData
+	{
+	public:
+		std::string nameLocal;
+		std::string nameUniversal;
+		PmxJointType type;
+		int32_t rigidBodyIndexA;
+		int32_t rigidBodyIndexB;
+		vec3 position;
+		vec3 rotation;
+		vec3 positionMin;
+		vec3 positionMax;
+		vec3 rotationMin;
+		vec3 rotationMax;
+		vec3 positionSpring;
+		vec3 rotationSpring;
+
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
+	enum class PmxSoftBodyShapeType : uint8_t
+	{
+		TriMesh = 0,
+		Rope = 1
+	};
+
+	enum class PmxSoftBodyFlags : uint8_t
+	{
+		BLink = 0,
+		ClusterCreation = 1,
+		LinkCrossing = 2
+	};
+
+	enum class PmxSoftBodyAeroDynamicsModel : int32_t
+	{
+		VPoint = 0,
+		VPointTwoSided = 1,
+		VPointOneSided = 2,
+		TPointTwoSided = 3,
+		TPointOneSided = 4,
+	};
+
+	class PmxSoftBodyAnchorRigidBody
+	{
+	public:
+		int32_t rigidBodyIndex;
+		int32_t vertexIndex;
+		uint8_t nearMode;
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
+	class PmxSoftBodyVertexPin
+	{
+	public:
+		int32_t vertexIndex;
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
+	typedef struct PmxSoftBodyConfig
+	{
+        float cfgVCF; // Velocities correction factor (Baumgarte)
+        float cfgDP; // Damping coefficient
+        float cfgDG; // Drag coefficient
+        float cfgLF; // Lift coefficient
+        float cfgPR; // Pressure coefficient
+        float cfgVC; // Volume conversation coefficient
+        float cfgDF; // Dynamic friction coefficient
+        float cfgMT; // Pose matching coefficient
+        float cfgCHR; // Rigid contacts hardness
+        float cfgKHR; // Kinetic contacts hardness
+        float cfgSHR; // Soft contacts hardness
+        float cfgAHR; // Anchors hardness
+        float clusterSRHR_CL; // Soft vs rigid hardness
+        float clusterSKHR_CL; // Soft vs kinetic hardness
+        float clusterSSHR_CL; // Soft vs soft hardness
+        float clusterSR_SPLT_CL; // Soft vs rigid impulse split
+        float clusterSK_SPLT_CL; // Soft vs kinetic impulse split
+        float clusterSS_SPLT_CL; // Soft vs soft impulse split
+        int iterationV_IT; // Velocities solver iterations
+        int iterationP_IT; // Positions solver iterations
+        int iterationD_IT; // Drift solver iterations
+        int iterationC_IT; // Cluster solver iterations
+        int materialLST; // Linear stiffness coefficient
+        int materialAST; // Area / Angular stiffness coefficient
+        int materialVST; // Volume stiffness coefficient
+	} PmxSoftBodyConfig;
+
+	class PmxSoftBodyData
+	{
+	public:
+		std::string nameLocal;
+		std::string nameUniversal;
+		PmxSoftBodyShapeType shapeType;
+		int32_t materialIndex;
+		uint8_t group;
+		uint16_t noCollisionMask;
+		PmxSoftBodyFlags flags;
+		int32_t bLinkCreateDistance;
+		int32_t nClusters;
+		float totalMass;
+		float collisionMargin;
+		PmxSoftBodyAeroDynamicsModel aeroModel;
+		PmxSoftBodyConfig config;
+		std::vector<PmxSoftBodyAnchorRigidBody> anchorRigidBodies;
+		std::vector<PmxSoftBodyVertexPin> vertexPins;
+
+		void Parse(std::istream* stream, PmxGlobalSettings settings);
+	};
+
     class Pmx
     {
         public:
@@ -445,6 +627,10 @@ namespace Vitriol
             std::vector<PmxMaterial> materials;
             std::vector<PmxBoneData> bones;
             std::vector<PmxMorphData> morphs;
+			std::vector<PmxDisplayData> displayPanes;
+			std::vector<PmxRigidBodyData> rigidBodies;
+			std::vector<PmxJointData> joints;
+			std::vector<PmxSoftBodyData> softbodyData;
 
             void Parse(std::istream* stream);
             void Save(std::ostream* stream);

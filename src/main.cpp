@@ -49,18 +49,38 @@ extern "C" {
             bwt[static_cast<int>(pmx.vertices[i].skinningType)]++;
         printf("  BDEF1: %d\n  BDEF2: %d\n  BDEF4: %d\n  SDEF: %d\n  QDEF: %d\n", bwt[0], bwt[1], bwt[2], bwt[3], bwt[4]);
         printf("Polygons: %lu\n", pmx.vertexIndices.size() / 3);
+
         printf("Textures: \n");
         for(int i = 0; i < pmx.textures.size(); i++)
             printf("  %s\n", pmx.textures[i].c_str());
+
         printf("Materials(%lu): \n", pmx.materials.size());
         for(int i = 0; i < pmx.materials.size(); i++)
             printf("  %d: %s\n", i, pmx.materials[i].localName.c_str());
+
         printf("Bones(%lu): \n", pmx.bones.size());
         for(auto i = 0; i < pmx.bones.size(); i++)
             printf("  %d: %s\n", i, pmx.bones[i].boneNameLocal.c_str());
-        printf("Morphs(%lu): \n", pmx.morphs.size());
-        for(auto i = 0; i < pmx.morphs.size(); i++)
-            printf("  %d: %s\n", i, pmx.morphs[i].morphNameLocal.c_str());
+
+		printf("Morphs(%lu): \n", pmx.morphs.size());
+		for (auto i = 0; i < pmx.morphs.size(); i++)
+			printf("  %d: %s\n", i, pmx.morphs[i].morphNameLocal.c_str());
+
+		printf("DisplayPanes(%lu): \n", pmx.displayPanes.size());
+		for (auto i = 0; i < pmx.displayPanes.size(); i++)
+			printf("  %d: %s\n", i, pmx.displayPanes[i].displayNameLocal.c_str());
+
+		printf("RigidBodies(%lu): \n", pmx.rigidBodies.size());
+		for (auto i = 0; i < pmx.rigidBodies.size(); i++)
+			printf("  %d: %s\n", i, pmx.rigidBodies[i].nameLocal.c_str());
+
+		printf("Joints(%lu): \n", pmx.joints.size());
+		for (auto i = 0; i < pmx.joints.size(); i++)
+			printf("  %d: %s\n", i, pmx.joints[i].nameLocal.c_str());
+
+		printf("SoftBodies(%lu): \n", pmx.softbodyData.size());
+		for (auto i = 0; i < pmx.softbodyData.size(); i++)
+			printf("  %d: %s\n", i, pmx.softbodyData[i].nameLocal.c_str());
         return 0;
     }
 }

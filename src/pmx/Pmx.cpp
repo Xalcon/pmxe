@@ -305,61 +305,178 @@ namespace Vitriol
         stream->read(reinterpret_cast<char*>(&this->influence), sizeof(this->influence));
     }
 
-    void PmxImpulseMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
-    {
-        this->rigidBodyIndex = ReadIndex(stream, settings.rigidBodyIndexSize);
-        stream->read(reinterpret_cast<char*>(&this->localFlag), sizeof(this->localFlag));
-        stream->read(reinterpret_cast<char*>(&this->movementSpeed), sizeof(this->movementSpeed));
-        stream->read(reinterpret_cast<char*>(&this->rotationTorque), sizeof(this->rotationTorque));
-    }
+	void PmxImpulseMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		this->rigidBodyIndex = ReadIndex(stream, settings.rigidBodyIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->localFlag), sizeof(this->localFlag));
+		stream->read(reinterpret_cast<char*>(&this->movementSpeed), sizeof(this->movementSpeed));
+		stream->read(reinterpret_cast<char*>(&this->rotationTorque), sizeof(this->rotationTorque));
+	}
 
-    void PmxMorphData::Parse(std::istream* stream, PmxGlobalSettings settings)
-    {
+	void PmxMorphData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
 		auto o = stream->tellg();
-        this->morphNameLocal = ReadString(stream, settings.textEncoding);
-        this->morphNameUniversal = ReadString(stream, settings.textEncoding);
-        stream->read(reinterpret_cast<char*>(&this->panelType), sizeof(this->panelType));
-        stream->read(reinterpret_cast<char*>(&this->morphType), sizeof(this->morphType));
-        int count;
-        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
-        this->dataList.reserve(count);
-        for(auto i = 0; i < count; i++)
-        {
-            std::unique_ptr<PmxMorphOffsetData> offsetData;
-            switch(this->morphType)
-            {
-                case PmxMorphType::Group:
-                    offsetData = std::make_unique<PmxGroupMorph>();
-                    break;
-                case PmxMorphType::Vertex:
-                    offsetData = std::make_unique<PmxVertexMorph>();
-                    break;
-                case PmxMorphType::Bone:
-                    offsetData = std::make_unique<PmxBoneMorph>();
-                    break;
-                case PmxMorphType::UV:
-                case PmxMorphType::UVExt1:
-                case PmxMorphType::UVExt2:
-                case PmxMorphType::UVExt3:
-                case PmxMorphType::UVExt4:
-                    offsetData = std::make_unique<PmxUVMorph>();
-                    break;
-                case PmxMorphType::Material:
-                    offsetData = std::make_unique<PmxMaterialMorph>();
-                    break;
-                case PmxMorphType::Flip:
-                    offsetData = std::make_unique<PmxFlipMorph>();
-                    break;
-                case PmxMorphType::Impulse:
-                    offsetData = std::make_unique<PmxImpulseMorph>();
-                    break;
-                default:
-                    throw "Unknown Morph type";
-            }
-            offsetData->Parse(stream, settings);
-            this->dataList.emplace_back(std::move(offsetData));
-        }
-    }
+		this->morphNameLocal = ReadString(stream, settings.textEncoding);
+		this->morphNameUniversal = ReadString(stream, settings.textEncoding);
+		stream->read(reinterpret_cast<char*>(&this->panelType), sizeof(this->panelType));
+		stream->read(reinterpret_cast<char*>(&this->morphType), sizeof(this->morphType));
+		int count;
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->dataList.reserve(count);
+		for (auto i = 0; i < count; i++)
+		{
+			std::unique_ptr<PmxMorphOffsetData> offsetData;
+			switch (this->morphType)
+			{
+			case PmxMorphType::Group:
+				offsetData = std::make_unique<PmxGroupMorph>();
+				break;
+			case PmxMorphType::Vertex:
+				offsetData = std::make_unique<PmxVertexMorph>();
+				break;
+			case PmxMorphType::Bone:
+				offsetData = std::make_unique<PmxBoneMorph>();
+				break;
+			case PmxMorphType::UV:
+			case PmxMorphType::UVExt1:
+			case PmxMorphType::UVExt2:
+			case PmxMorphType::UVExt3:
+			case PmxMorphType::UVExt4:
+				offsetData = std::make_unique<PmxUVMorph>();
+				break;
+			case PmxMorphType::Material:
+				offsetData = std::make_unique<PmxMaterialMorph>();
+				break;
+			case PmxMorphType::Flip:
+				offsetData = std::make_unique<PmxFlipMorph>();
+				break;
+			case PmxMorphType::Impulse:
+				offsetData = std::make_unique<PmxImpulseMorph>();
+				break;
+			default:
+				throw "Unknown Morph type";
+			}
+			offsetData->Parse(stream, settings);
+			this->dataList.emplace_back(std::move(offsetData));
+		}
+	}
+
+	void PmxFrameData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		stream->read(reinterpret_cast<char*>(&this->frameType), sizeof(this->frameType));
+		const int size = this->frameType == PmxDisplayFrameType::Bone
+			? settings.boneIndexSize
+			: this->frameType == PmxDisplayFrameType::Morph
+			? settings.morphIndexSize : throw "Invalid frame type";
+						
+		this->index = ReadIndex(stream, size);
+	}
+
+	void PmxDisplayData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		this->displayNameLocal = ReadString(stream, settings.textEncoding);
+		this->displayNameUniversal = ReadString(stream, settings.textEncoding);
+		stream->read(reinterpret_cast<char*>(&this->isSpecialFrame), sizeof(this->isSpecialFrame));
+		int frameCount;
+		stream->read(reinterpret_cast<char*>(&frameCount), sizeof(frameCount));
+		this->frames.reserve(frameCount);
+		for(auto i = 0; i < frameCount; i++)
+		{
+			PmxFrameData frameData;
+			frameData.Parse(stream, settings);
+			this->frames.emplace_back(frameData);
+		}
+	}
+
+	void PmxRigidBodyData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		auto loc = stream->tellg();
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
+		this->boneIndex = ReadIndex(stream, settings.boneIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->groupId), sizeof(this->groupId));
+		stream->read(reinterpret_cast<char*>(&this->nonCollisionMask), sizeof(this->nonCollisionMask));
+		stream->read(reinterpret_cast<char*>(&this->shapeType), sizeof(this->shapeType));
+		stream->read(reinterpret_cast<char*>(&this->shapeSize), sizeof(this->shapeSize));
+		stream->read(reinterpret_cast<char*>(&this->shapePosition), sizeof(this->shapePosition));
+		stream->read(reinterpret_cast<char*>(&this->shapeRotation), sizeof(this->shapeRotation));
+		stream->read(reinterpret_cast<char*>(&this->mass), sizeof(this->mass));
+		stream->read(reinterpret_cast<char*>(&this->moveAttenuation), sizeof(this->moveAttenuation));
+		stream->read(reinterpret_cast<char*>(&this->rotationDampening), sizeof(this->rotationDampening));
+		stream->read(reinterpret_cast<char*>(&this->repulsion), sizeof(this->repulsion));
+		stream->read(reinterpret_cast<char*>(&this->frictionForce), sizeof(this->frictionForce));
+		stream->read(reinterpret_cast<char*>(&this->physicsMode), sizeof(this->physicsMode));
+	}
+
+	void PmxJointData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		auto loc = stream->tellg();
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
+		stream->read(reinterpret_cast<char*>(&this->type), sizeof(this->type));
+		this->rigidBodyIndexA = ReadIndex(stream, settings.rigidBodyIndexSize);
+		this->rigidBodyIndexB = ReadIndex(stream, settings.rigidBodyIndexSize);
+
+		stream->read(reinterpret_cast<char*>(&this->position), sizeof(this->position));
+		stream->read(reinterpret_cast<char*>(&this->rotation), sizeof(this->rotation));
+		stream->read(reinterpret_cast<char*>(&this->positionMin), sizeof(this->positionMin));
+		stream->read(reinterpret_cast<char*>(&this->positionMax), sizeof(this->positionMax));
+		stream->read(reinterpret_cast<char*>(&this->rotationMin), sizeof(this->rotationMin));
+		stream->read(reinterpret_cast<char*>(&this->rotationMax), sizeof(this->rotationMax));
+		stream->read(reinterpret_cast<char*>(&this->positionSpring), sizeof(this->positionSpring));
+		stream->read(reinterpret_cast<char*>(&this->rotationSpring), sizeof(this->rotationSpring));
+	}
+
+	void PmxSoftBodyAnchorRigidBody::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		this->rigidBodyIndex = ReadIndex(stream, settings.rigidBodyIndexSize);
+		this->vertexIndex = ReadIndex(stream, settings.vertexIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->nearMode), sizeof(this->nearMode));
+
+	}
+	
+	void PmxSoftBodyVertexPin::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		this->vertexIndex = ReadIndex(stream, settings.vertexIndexSize);
+	}
+	
+	void PmxSoftBodyData::Parse(std::istream* stream, PmxGlobalSettings settings)
+	{
+		auto loc = stream->tellg();
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
+
+		stream->read(reinterpret_cast<char*>(&this->shapeType), sizeof(this->shapeType));
+		this->materialIndex = ReadIndex(stream, settings.materialIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->group), sizeof(this->group));
+		stream->read(reinterpret_cast<char*>(&this->noCollisionMask), sizeof(this->noCollisionMask));
+		stream->read(reinterpret_cast<char*>(&this->flags), sizeof(this->flags));
+		stream->read(reinterpret_cast<char*>(&this->bLinkCreateDistance), sizeof(this->bLinkCreateDistance));
+		stream->read(reinterpret_cast<char*>(&this->nClusters), sizeof(this->nClusters));
+		stream->read(reinterpret_cast<char*>(&this->totalMass), sizeof(this->totalMass));
+		stream->read(reinterpret_cast<char*>(&this->collisionMargin), sizeof(this->collisionMargin));
+		stream->read(reinterpret_cast<char*>(&this->aeroModel), sizeof(this->aeroModel));
+		stream->read(reinterpret_cast<char*>(&this->config), sizeof(this->config));
+
+		int count;
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->anchorRigidBodies.reserve(count);
+		for(auto i = 0; i < count; i++)
+		{
+			PmxSoftBodyAnchorRigidBody anchorRB;
+			anchorRB.Parse(stream, settings);
+			this->anchorRigidBodies.emplace_back(anchorRB);
+		}
+
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->vertexPins.reserve(count);
+		for(auto i = 0; i < count; i++)
+		{
+			PmxSoftBodyVertexPin vertexPin;
+			vertexPin.Parse(stream, settings);
+			this->vertexPins.emplace_back(vertexPin);
+		}
+	}
 
     void Pmx::Parse(std::istream* stream)
     {
@@ -427,14 +544,57 @@ namespace Vitriol
             this->bones.emplace_back(bone);
         }
 
-        // read morphs
-        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
-        this->morphs.reserve(count);
-        for(size_t i = 0; i < count; i++)
-        {
-            PmxMorphData morph;
-            morph.Parse(stream, this->globalSettings);
-            this->morphs.emplace_back(std::move(morph));
-        }
+		// read morphs
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->morphs.reserve(count);
+		for (size_t i = 0; i < count; i++)
+		{
+			PmxMorphData morph;
+			morph.Parse(stream, this->globalSettings);
+			this->morphs.emplace_back(std::move(morph));
+		}
+
+		// read displayPanes
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->displayPanes.reserve(count);
+		for (size_t i = 0; i < count; i++)
+		{
+			PmxDisplayData display;
+			display.Parse(stream, this->globalSettings);
+			this->displayPanes.emplace_back(std::move(display));
+		}
+
+		// read rigid bodies
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->rigidBodies.reserve(count);
+		for (size_t i = 0; i < count; i++)
+		{
+			PmxRigidBodyData rigidBody;
+			rigidBody.Parse(stream, this->globalSettings);
+			this->rigidBodies.emplace_back(rigidBody);
+		}
+
+		// read joints
+		stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+		this->joints.reserve(count);
+		for (size_t i = 0; i < count; i++)
+		{
+			PmxJointData joint;
+			joint.Parse(stream, this->globalSettings);
+			this->joints.emplace_back(joint);
+		}
+
+		if(version > 2.0)
+		{
+			// read softbody data
+			stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+			this->softbodyData.reserve(count);
+			for (size_t i = 0; i < count; i++)
+			{
+				PmxSoftBodyData softbody;
+				softbody.Parse(stream, this->globalSettings);
+				this->softbodyData.emplace_back(softbody);
+			}
+		}
     }
 }

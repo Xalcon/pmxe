@@ -160,21 +160,8 @@ namespace Vitriol
 
     void PmxMaterial::Parse(std::istream* stream, PmxGlobalSettings settings)
     {
-		auto loc = stream->tellg();
         this->localName = ReadString(stream, settings.textEncoding);
         this->universalName = ReadString(stream, settings.textEncoding);
-        // read next bytes in one batch
-        /*const int size = sizeof(this->diffuseColor) 
-                       + sizeof(this->specularColor)
-                       + sizeof(this->specularStrength)
-                       + sizeof(this->ambientColor)
-                       + sizeof(this->flags)
-                       + sizeof(this->edgeColor)
-                       + sizeof(this->edgeScale)
-                       + settings.textureIndexSize * 2 // texture + environment index
-                       + sizeof(this->environmentBlendMode)
-                       + sizeof(this->toonReference);
-        stream->read(reinterpret_cast<char*>(&this->diffuseColor), size);*/
 		stream->read(reinterpret_cast<char*>(&this->diffuseColor), sizeof(this->diffuseColor));
 		stream->read(reinterpret_cast<char*>(&this->specularColor), sizeof(this->specularColor));
 		stream->read(reinterpret_cast<char*>(&this->specularStrength), sizeof(this->specularStrength));
@@ -191,6 +178,187 @@ namespace Vitriol
         stream->read(reinterpret_cast<char*>(&this->toonValue), toonValueSize);
 		this->note = ReadString(stream, settings.textEncoding);
         stream->read(reinterpret_cast<char*>(&this->surfaceCount), sizeof(this->surfaceCount));
+    }
+
+    void PmxParentBone::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->parentIndex = ReadIndex(stream, settings.boneIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->parentInfluence), sizeof(this->parentInfluence));
+    }
+
+    void PmxBoneFixedAxis::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        stream->read(reinterpret_cast<char*>(&this->axisDirection), sizeof(this->axisDirection));
+    }
+
+    void PmxBoneLocalCoordinate::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        stream->read(reinterpret_cast<char*>(&this->x), sizeof(this->x) + sizeof(this->z));
+    }
+
+    void PmxBoneExternalParent::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->parentIndex = ReadIndex(stream, settings.boneIndexSize);
+    }
+
+    void PmxBoneIkAngleLimit::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        stream->read(reinterpret_cast<char*>(&this->min), sizeof(this->min) + sizeof(this->max));
+    }
+
+    void PmxBoneIkLinks::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->boneIndex = ReadIndex(stream, settings.boneIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->hasLimits), sizeof(this->hasLimits));
+        if(this->hasLimits)
+            this->angleLimits.Parse(stream, settings);
+    }
+
+    void PmxBoneIk::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->targetIndex = ReadIndex(stream, settings.boneIndexSize);
+        int size = sizeof(this->loopCount) + sizeof(this->limitRadians) + sizeof(this->linkCount);
+        stream->read(reinterpret_cast<char*>(&this->loopCount), size);
+        this->ikLinks.reserve(size);
+        for(auto i = 0; i < this->linkCount; i++)
+        {
+            PmxBoneIkLinks link;
+            link.Parse(stream, settings);
+            this->ikLinks.emplace_back(link);
+        }
+    }
+
+    void PmxBoneData::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+		auto loc = stream->tellg();
+        this->boneNameLocal = ReadString(stream, settings.textEncoding);
+        this->boneNameUniversal = ReadString(stream, settings.textEncoding);
+        stream->read(reinterpret_cast<char*>(&this->position), sizeof(this->position));
+        stream->read(reinterpret_cast<char*>(&this->parentBoneIndex), settings.boneIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->layer), sizeof(this->layer));
+        stream->read(reinterpret_cast<char*>(&this->flags), sizeof(this->flags));
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::IndexedTailPosition))
+            stream->read(reinterpret_cast<char*>(&this->tailPositionBoneIndex), settings.boneIndexSize);
+        else
+            stream->read(reinterpret_cast<char*>(&this->tailPosition), sizeof(this->tailPosition));
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::InheritRotation) || static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::InheritTranslation))
+            this->inheritBone.Parse(stream, settings);
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::FixedAxis))
+            this->fixedAxis.Parse(stream, settings);
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::LocalCoordinate))
+            this->localCoordinate.Parse(stream, settings);
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::ExternalParentDeform))
+            this->externalParent.Parse(stream, settings);
+
+        if(static_cast<int>(this->flags) & static_cast<int>(PmxBoneFlags::InverseKinematics))
+            this->ikBoneData.Parse(stream, settings);
+    }
+
+    void PmxGroupMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->morphIndex = ReadIndex(stream, settings.morphIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->influence), sizeof(this->influence));
+    }
+
+    void PmxVertexMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->vertexIndex = ReadIndex(stream, settings.vertexIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->translation), sizeof(this->translation));
+    }
+
+    void PmxBoneMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->boneIndex = ReadIndex(stream, settings.boneIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->translation), sizeof(this->translation));
+        stream->read(reinterpret_cast<char*>(&this->rotation), sizeof(this->rotation));
+    }
+
+    void PmxUVMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->vertexIndex = ReadIndex(stream, settings.vertexIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->data), sizeof(this->data));
+    }
+
+    void PmxMaterialMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->materialIndex = ReadIndex(stream, settings.materialIndexSize);
+		stream->read(reinterpret_cast<char*>(&this->operation), sizeof(this->operation));
+        stream->read(reinterpret_cast<char*>(&this->diffuse), sizeof(this->diffuse));
+        stream->read(reinterpret_cast<char*>(&this->specular), sizeof(this->specular));
+        stream->read(reinterpret_cast<char*>(&this->specularStrength), sizeof(this->specularStrength));
+        stream->read(reinterpret_cast<char*>(&this->ambient), sizeof(this->ambient));
+        stream->read(reinterpret_cast<char*>(&this->edgeColor), sizeof(this->edgeColor));
+        stream->read(reinterpret_cast<char*>(&this->edgeSize), sizeof(this->edgeSize));
+        stream->read(reinterpret_cast<char*>(&this->textureTint), sizeof(this->textureTint));
+        stream->read(reinterpret_cast<char*>(&this->environmentTint), sizeof(this->environmentTint));
+        stream->read(reinterpret_cast<char*>(&this->toonTint), sizeof(this->toonTint));
+    }
+
+    void PmxFlipMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->morphIndex = ReadIndex(stream, settings.morphIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->influence), sizeof(this->influence));
+    }
+
+    void PmxImpulseMorph::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+        this->rigidBodyIndex = ReadIndex(stream, settings.rigidBodyIndexSize);
+        stream->read(reinterpret_cast<char*>(&this->localFlag), sizeof(this->localFlag));
+        stream->read(reinterpret_cast<char*>(&this->movementSpeed), sizeof(this->movementSpeed));
+        stream->read(reinterpret_cast<char*>(&this->rotationTorque), sizeof(this->rotationTorque));
+    }
+
+    void PmxMorphData::Parse(std::istream* stream, PmxGlobalSettings settings)
+    {
+		auto o = stream->tellg();
+        this->morphNameLocal = ReadString(stream, settings.textEncoding);
+        this->morphNameUniversal = ReadString(stream, settings.textEncoding);
+        stream->read(reinterpret_cast<char*>(&this->panelType), sizeof(this->panelType));
+        stream->read(reinterpret_cast<char*>(&this->morphType), sizeof(this->morphType));
+        int count;
+        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+        this->dataList.reserve(count);
+        for(auto i = 0; i < count; i++)
+        {
+            std::unique_ptr<PmxMorphOffsetData> offsetData;
+            switch(this->morphType)
+            {
+                case PmxMorphType::Group:
+                    offsetData = std::make_unique<PmxGroupMorph>();
+                    break;
+                case PmxMorphType::Vertex:
+                    offsetData = std::make_unique<PmxVertexMorph>();
+                    break;
+                case PmxMorphType::Bone:
+                    offsetData = std::make_unique<PmxBoneMorph>();
+                    break;
+                case PmxMorphType::UV:
+                case PmxMorphType::UVExt1:
+                case PmxMorphType::UVExt2:
+                case PmxMorphType::UVExt3:
+                case PmxMorphType::UVExt4:
+                    offsetData = std::make_unique<PmxUVMorph>();
+                    break;
+                case PmxMorphType::Material:
+                    offsetData = std::make_unique<PmxMaterialMorph>();
+                    break;
+                case PmxMorphType::Flip:
+                    offsetData = std::make_unique<PmxFlipMorph>();
+                    break;
+                case PmxMorphType::Impulse:
+                    offsetData = std::make_unique<PmxImpulseMorph>();
+                    break;
+                default:
+                    throw "Unknown Morph type";
+            }
+            offsetData->Parse(stream, settings);
+            this->dataList.emplace_back(std::move(offsetData));
+        }
     }
 
     void Pmx::Parse(std::istream* stream)
@@ -212,17 +380,16 @@ namespace Vitriol
 
         // read vertices
         stream->read(reinterpret_cast<char*>(&count), sizeof(count));
-        this->Vertices.reserve(count);
+        this->vertices.reserve(count);
         for(size_t i = 0; i < count; i++)
         {
             PmxVertex vertex;
             vertex.Parse(stream, this->globalSettings);
-            this->Vertices.emplace_back(std::move(vertex));
+            this->vertices.emplace_back(std::move(vertex));
         }
 
         // read faces
         stream->read(reinterpret_cast<char*>(&count), sizeof(count));
-        printf("Reserved %d entries for indices\n", count);
         this->vertexIndices.reserve(count);
         for(size_t i = 0; i < count; i++)
         {
@@ -248,6 +415,26 @@ namespace Vitriol
             PmxMaterial material;
             material.Parse(stream, this->globalSettings);
             this->materials.emplace_back(material);
+        }
+
+        // read bones
+        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+        this->bones.reserve(count);
+        for(size_t i = 0; i < count; i++)
+        {
+            PmxBoneData bone;
+            bone.Parse(stream, this->globalSettings);
+            this->bones.emplace_back(bone);
+        }
+
+        // read morphs
+        stream->read(reinterpret_cast<char*>(&count), sizeof(count));
+        this->morphs.reserve(count);
+        for(size_t i = 0; i < count; i++)
+        {
+            PmxMorphData morph;
+            morph.Parse(stream, this->globalSettings);
+            this->morphs.emplace_back(std::move(morph));
         }
     }
 }

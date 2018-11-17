@@ -52,6 +52,13 @@ namespace Vitriol
 			void Parse(std::istream *stream);
     };
 
+    /*class IPmxParsable
+    {
+        public:
+            virtual ~IPmxParsable() {}
+            virtual void Parse(std::istream *stream, PmxGlobalSettings settings) = 0;
+    };*/
+
     enum class PmxVertexSkinningType : uint8_t
     {
 		BDEF1 = 0,
@@ -134,7 +141,7 @@ namespace Vitriol
             void Parse(std::istream* stream, PmxGlobalSettings settings);
     };
 
-    class PmxVertex
+    class PmxVertex// : private IPmxParsable
     {
         public:
             vec3 position;
@@ -173,7 +180,7 @@ namespace Vitriol
         AdditionalVec4 = 3
     };
 
-    class PmxMaterial
+    class PmxMaterial// : private IPmxParsable
     {
     public:
 	    PmxMaterial() : textureIndex(0), environmentIndex(0), toonValue(0), surfaceCount(0) {};
@@ -202,6 +209,225 @@ namespace Vitriol
         void Parse(std::istream* stream, PmxGlobalSettings settings);
     };
 
+    enum class PmxBoneFlags : uint16_t
+    {
+        IndexedTailPosition = 1 << 0, // Is the tail position a vec3 or bone index	
+        Rotatable = 1 << 1, // Enables rotation
+        Translatable = 1 << 2, // Is the tail position a vec3 or bone index	
+        IsVisible = 1 << 3, // ???
+        Enabled = 1 << 4, // ???
+        InverseKinematics = 1 << 5, // Use inverse kinematics (physics)	
+        InheritRotation = 1 << 8, // Rotation inherits from another bone
+        InheritTranslation = 1 << 9, // Translation inherits from another bone
+        FixedAxis = 1 << 10, // The bone's shaft is fixed in a direction
+        LocalCoordinate = 1 << 11, // ???
+        PhysicsAfterDeform = 1 << 12, // ???
+        ExternalParentDeform = 1 << 13, // ???
+    };
+
+    class PmxParentBone
+    {
+        public:
+            int32_t parentIndex;
+            float parentInfluence;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneFixedAxis
+    {
+        public:
+            vec3 axisDirection;
+        
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneLocalCoordinate
+    {
+        public:
+            vec3 x;
+            vec3 z;
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneExternalParent
+    {
+        public:
+            int32_t parentIndex;
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneIkAngleLimit
+    {
+        public:
+            vec3 min; // minimum angle in radians
+            vec3 max; // maximum angle in radians
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneIkLinks
+    {
+        public:
+            int32_t boneIndex;
+            uint8_t hasLimits; // When equal to 1, use angle limits
+            PmxBoneIkAngleLimit angleLimits; // Used if has limits is 1. See IK Angle Limit
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneIk
+    {
+        public:
+            int32_t targetIndex;
+            int32_t loopCount;
+            float limitRadians;
+            int32_t linkCount; // How many bones this IK links with
+            std::vector<PmxBoneIkLinks> ikLinks;
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneData// : private IPmxParsable
+    {
+        public:
+            std::string boneNameLocal;
+            std::string boneNameUniversal;
+            vec3 position; // The local translation of the bone
+            int32_t parentBoneIndex;
+            int32_t layer; // deformation hierarchy
+            PmxBoneFlags flags;
+            union { vec3 tailPosition; int32_t tailPositionBoneIndex; };
+            PmxParentBone inheritBone;
+            PmxBoneFixedAxis fixedAxis;
+            PmxBoneLocalCoordinate localCoordinate;
+            PmxBoneExternalParent externalParent;
+            PmxBoneIk ikBoneData;
+            
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    enum class PmxMorphType : uint8_t
+    {
+        Group = 0,
+        Vertex = 1,
+        Bone = 2,
+        UV = 3,
+        UVExt1 = 4,
+        UVExt2 = 5,
+        UVExt3 = 6,
+        UVExt4 = 7,
+        Material = 8,
+        // 2.1
+        Flip = 9,
+        Impulse = 10
+    };
+
+    enum class PmxMorphPanelType : uint8_t
+    {
+        Hidden = 0, // None
+        Eyebrows = 1, // Bottom Left
+        Eyes = 2, // Top Left
+        Mouth = 3, // Top right
+        Other = 4 // Bottom right
+    };
+
+    class PmxMorphOffsetData
+    {
+        public:
+            virtual ~PmxMorphOffsetData() {}
+            virtual void Parse(std::istream* stream, PmxGlobalSettings settings) = 0;
+    };
+
+    class PmxGroupMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t morphIndex;
+            float influence;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxVertexMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t vertexIndex;
+            vec3 translation;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxBoneMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t boneIndex;
+            vec3 translation;
+            vec4 rotation;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxUVMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t vertexIndex;
+            vec4 data;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxMaterialMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t materialIndex;
+            uint8_t operation;
+            vec4 diffuse;
+            vec3 specular;
+            float specularStrength;
+            vec3 ambient;
+            vec4 edgeColor;
+            float edgeSize;
+            vec4 textureTint;
+            vec4 environmentTint;
+            vec4 toonTint;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxFlipMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t morphIndex;
+            float influence;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxImpulseMorph : public PmxMorphOffsetData
+    {
+        public:
+            int32_t rigidBodyIndex;
+            uint32_t localFlag;
+            vec3 movementSpeed;
+            vec3 rotationTorque;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
+    class PmxMorphData// : private IPmxParsable
+    {
+        public:
+            std::string morphNameLocal;
+            std::string morphNameUniversal;
+            PmxMorphPanelType panelType;
+            PmxMorphType morphType;
+            std::vector<std::unique_ptr<PmxMorphOffsetData>> dataList;
+
+            void Parse(std::istream* stream, PmxGlobalSettings settings);
+    };
+
     class Pmx
     {
         public:
@@ -213,10 +439,12 @@ namespace Vitriol
             std::string commentLocal;
             std::string commentUniversal;
 
-            std::vector<PmxVertex> Vertices;
+            std::vector<PmxVertex> vertices;
             std::vector<uint32_t> vertexIndices;
             std::vector<std::string> textures;
             std::vector<PmxMaterial> materials;
+            std::vector<PmxBoneData> bones;
+            std::vector<PmxMorphData> morphs;
 
             void Parse(std::istream* stream);
             void Save(std::ostream* stream);

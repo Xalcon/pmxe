@@ -34,8 +34,8 @@ namespace vitriol
 	{
 	public:
 		PmxMaterial() : textureIndex(0), environmentIndex(0), toonValue(0), surfaceCount(0) {};
-		std::string localName; // Handy name for the material (Usually Japanese)
-		std::string universalName; // Handy name for the material (Usually English)
+		std::string nameLocal; // Handy name for the material (Usually Japanese)
+		std::string nameUniversal; // Handy name for the material (Usually English)
 		Vec4 diffuseColor; // RGBA colour (Alpha will set a semi-transparent material)
 		Vec3 specularColor; // RGB colour of the reflected light
 		float specularStrength; // 	The "size" of the specular highlight

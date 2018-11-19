@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "pmx/Pmx.hpp"
+#include "pmx/PmxException.h"
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -19,16 +20,32 @@ extern "C" {
         file.open(filePath, std::ifstream::in | std::ifstream::binary);
 
         file.seekg(0, std::ios::end);
-        const int totalFileSize = file.tellg();
+        const uint64_t totalFileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
         vitriol::Pmx pmx;
-        pmx.Parse(&file);
+		try
+		{
+			pmx.Parse(&file);
+		}
+		catch(vitriol::PmxException& e)
+		{
+			std::cout << "Error in " << e.getFile() << ":" << e.getLine() << " @ " << e.getFunc() << std::endl;
+			std::cout << e.what() << std::endl;
+			return 1;
+		}
+		catch(std::exception& e)
+		{
+			std::cout << e.what() << std::endl;
+			return 1;
+		}
+        
 
-        const int len = file.tellg();
+        const uint64_t len = file.tellg();
         file.close();
 
-        printf("Read %d bytes from %s (Total size: %d bytes)\n", len, filePath, totalFileSize);
+        printf("Read %llu bytes from %s (Total size: %llu bytes)\n", len, filePath, totalFileSize);
+		std::cout << "Read" << len << "bytes from " << filePath << "(Total size: " << totalFileSize << "bytes)" << std::endl;
         printf("Magic: '%.*s'\n", 4, pmx.magic);
         printf("Version: %.1f\n", pmx.version);
         printf(" - TextEncoding: %hhu\n", pmx.globalSettings.textEncoding);
@@ -45,42 +62,42 @@ extern "C" {
         printf("UniversalComment: %s\n", pmx.commentUniversal.c_str());
         printf("Vertices: %lu\n", pmx.vertices.size());
         int bwt[5];
-        for(int i = 0; i < pmx.vertices.size(); i++)
-            bwt[static_cast<int>(pmx.vertices[i].skinningType)]++;
+        for (auto& vertex : pmx.vertices)
+	        bwt[static_cast<int>(vertex.skinningType)]++;
         printf("  BDEF1: %d\n  BDEF2: %d\n  BDEF4: %d\n  SDEF: %d\n  QDEF: %d\n", bwt[0], bwt[1], bwt[2], bwt[3], bwt[4]);
         printf("Polygons: %lu\n", pmx.vertexIndices.size() / 3);
-
-        printf("Textures: \n");
-        for(int i = 0; i < pmx.textures.size(); i++)
-            printf("  %s\n", pmx.textures[i].c_str());
+		
+        printf("Textures(%lu): \n", pmx.textures.size());
+        for(size_t i = 0; i < pmx.textures.size(); i++)
+            printf("  %lu: %s\n", i, pmx.textures[i].c_str());
 
         printf("Materials(%lu): \n", pmx.materials.size());
-        for(int i = 0; i < pmx.materials.size(); i++)
-            printf("  %d: %s\n", i, pmx.materials[i].localName.c_str());
+        for(size_t i = 0; i < pmx.materials.size(); i++)
+            printf("  %lu: %s\n", i, pmx.materials[i].nameLocal.c_str());
 
         printf("Bones(%lu): \n", pmx.bones.size());
-        for(auto i = 0; i < pmx.bones.size(); i++)
-            printf("  %d: %s\n", i, pmx.bones[i].boneNameLocal.c_str());
+        for(size_t i = 0; i < pmx.bones.size(); i++)
+            printf("  %lu: %s\n", i, pmx.bones[i].nameLocal.c_str());
 
 		printf("Morphs(%lu): \n", pmx.morphs.size());
-		for (auto i = 0; i < pmx.morphs.size(); i++)
-			printf("  %d: %s\n", i, pmx.morphs[i].morphNameLocal.c_str());
+		for (size_t i = 0; i < pmx.morphs.size(); i++)
+			printf("  %lu: %s\n", i, pmx.morphs[i].nameLocal.c_str());
 
 		printf("DisplayPanes(%lu): \n", pmx.displayPanes.size());
-		for (auto i = 0; i < pmx.displayPanes.size(); i++)
-			printf("  %d: %s\n", i, pmx.displayPanes[i].displayNameLocal.c_str());
+		for (size_t i = 0; i < pmx.displayPanes.size(); i++)
+			printf("  %lu: %s\n", i, pmx.displayPanes[i].nameLocal.c_str());
 
 		printf("RigidBodies(%lu): \n", pmx.rigidBodies.size());
-		for (auto i = 0; i < pmx.rigidBodies.size(); i++)
-			printf("  %d: %s\n", i, pmx.rigidBodies[i].nameLocal.c_str());
+		for (size_t i = 0; i < pmx.rigidBodies.size(); i++)
+			printf("  %lu: %s\n", i, pmx.rigidBodies[i].nameLocal.c_str());
 
 		printf("Joints(%lu): \n", pmx.joints.size());
-		for (auto i = 0; i < pmx.joints.size(); i++)
-			printf("  %d: %s\n", i, pmx.joints[i].nameLocal.c_str());
+		for (size_t i = 0; i < pmx.joints.size(); i++)
+			printf("  %lu: %s\n", i, pmx.joints[i].nameLocal.c_str());
 
 		printf("SoftBodies(%lu): \n", pmx.softbodyData.size());
-		for (auto i = 0; i < pmx.softbodyData.size(); i++)
-			printf("  %d: %s\n", i, pmx.softbodyData[i].nameLocal.c_str());
+		for (size_t i = 0; i < pmx.softbodyData.size(); i++)
+			printf("  %lu: %s\n", i, pmx.softbodyData[i].nameLocal.c_str());
         return 0;
     }
 }
@@ -91,6 +108,5 @@ void main()
 {
 	SetConsoleOutputCP(65001);
 	ProcessFile(R"(F:\Dev\Emscripten\SAO ver1.2\SAO\Kirito(GGO)\Kirito_x.pmx)");
-	std::cin;
 }
 #endif

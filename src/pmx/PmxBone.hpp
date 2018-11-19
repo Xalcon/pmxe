@@ -91,8 +91,8 @@ namespace vitriol
 	class PmxBoneData// : private IPmxParsable
 	{
 	public:
-		std::string boneNameLocal;
-		std::string boneNameUniversal;
+		std::string nameLocal;
+		std::string nameUniversal;
 		Vec3 position; // The local translation of the bone
 		int32_t parentBoneIndex;
 		int32_t layer; // deformation hierarchy

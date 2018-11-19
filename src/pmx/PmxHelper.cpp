@@ -2,6 +2,7 @@
 #include <istream>
 #include <locale>
 #include <codecvt>
+#include "PmxException.h"
 
 namespace vitriol
 {
@@ -42,7 +43,7 @@ namespace vitriol
 		// but we treat them like the others with an upper limit of INT32_MAX
 		// this means our parser can only properly parse models with less than 2 million vertices
 		const uint32_t upperLimit = (2 << (6 + 8 * (typeSize - 1))) - 1;
-		return Limit(tmp, 0u, upperLimit, -1u);
+		return static_cast<int32_t>(Limit(tmp, 0u, upperLimit, -1u));
 	}
 
 	std::string ReadString(std::istream* stream, PmxStringEncoding sourceEncoding)
@@ -54,7 +55,7 @@ namespace vitriol
 		if (sourceEncoding == PmxStringEncoding::UTF16LittleEndian)
 		{
 			if (size % 2 != 0)
-				throw "Invalid size!";
+				throw PMX_EXCEPTION("UTF16 string with uneven amount of bytes!");
 
 			std::vector<char16_t> buffer;
 			buffer.resize(size);
@@ -73,6 +74,6 @@ namespace vitriol
 			return std::string(buffer.begin(), buffer.end());
 		}
 
-		return "INVALID_ENCODING";
+		throw PMX_EXCEPTION("Invalid string encoding");
 	}
 }

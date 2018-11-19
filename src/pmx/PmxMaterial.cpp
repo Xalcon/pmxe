@@ -5,8 +5,8 @@ namespace vitriol
 {
 	void PmxMaterial::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		this->localName = ReadString(stream, settings.textEncoding);
-		this->universalName = ReadString(stream, settings.textEncoding);
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
 		stream->read(reinterpret_cast<char*>(&this->diffuseColor), sizeof(this->diffuseColor));
 		stream->read(reinterpret_cast<char*>(&this->specularColor), sizeof(this->specularColor));
 		stream->read(reinterpret_cast<char*>(&this->specularStrength), sizeof(this->specularStrength));

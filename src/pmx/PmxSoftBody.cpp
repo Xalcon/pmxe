@@ -18,7 +18,6 @@ namespace vitriol
 
 	void PmxSoftBodyData::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		auto loc = stream->tellg();
 		this->nameLocal = ReadString(stream, settings.textEncoding);
 		this->nameUniversal = ReadString(stream, settings.textEncoding);
 

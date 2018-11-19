@@ -59,9 +59,8 @@ namespace vitriol
 
 	void PmxMorphData::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		auto o = stream->tellg();
-		this->morphNameLocal = ReadString(stream, settings.textEncoding);
-		this->morphNameUniversal = ReadString(stream, settings.textEncoding);
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
 		stream->read(reinterpret_cast<char*>(&this->panelType), sizeof(this->panelType));
 		stream->read(reinterpret_cast<char*>(&this->morphType), sizeof(this->morphType));
 		int count;

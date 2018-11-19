@@ -26,10 +26,9 @@ namespace vitriol
 	class PmxDisplayData
 	{
 	public:
-		std::string displayNameLocal;
-		std::string displayNameUniversal;
+		std::string nameLocal;
+		std::string nameUniversal;
 		uint8_t isSpecialFrame;
-		//int32_t frameCount;
 		std::vector<PmxFrameData> frames;
 
 		void Parse(std::istream* stream, PmxGlobalSettings settings);

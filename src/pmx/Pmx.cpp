@@ -1,5 +1,6 @@
 #include "Pmx.hpp"
 #include "PmxHelper.hpp"
+#include "PmxException.h"
 
 namespace vitriol
 {
@@ -45,7 +46,7 @@ namespace vitriol
         this->textures.reserve(count);
         for(size_t i = 0; i < count; i++)
         {
-            std::string texture = ReadString(stream, this->globalSettings.textEncoding);
+	        auto texture = ReadString(stream, this->globalSettings.textEncoding);
             this->textures.emplace_back(texture);
         }
 

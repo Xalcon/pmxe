@@ -53,9 +53,8 @@ namespace vitriol
 
 	void PmxBoneData::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		auto loc = stream->tellg();
-		this->boneNameLocal = ReadString(stream, settings.textEncoding);
-		this->boneNameUniversal = ReadString(stream, settings.textEncoding);
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
 		stream->read(reinterpret_cast<char*>(&this->position), sizeof(this->position));
 		stream->read(reinterpret_cast<char*>(&this->parentBoneIndex), settings.boneIndexSize);
 		stream->read(reinterpret_cast<char*>(&this->layer), sizeof(this->layer));

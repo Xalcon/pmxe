@@ -5,7 +5,6 @@ namespace vitriol
 {
 	void PmxJointData::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		auto loc = stream->tellg();
 		this->nameLocal = ReadString(stream, settings.textEncoding);
 		this->nameUniversal = ReadString(stream, settings.textEncoding);
 		stream->read(reinterpret_cast<char*>(&this->type), sizeof(this->type));

@@ -123,8 +123,8 @@ namespace vitriol
 	class PmxMorphData// : private IPmxParsable
 	{
 	public:
-		std::string morphNameLocal;
-		std::string morphNameUniversal;
+		std::string nameLocal;
+		std::string nameUniversal;
 		PmxMorphPanelType panelType;
 		PmxMorphType morphType;
 		std::vector<std::unique_ptr<PmxMorphOffsetData>> dataList;

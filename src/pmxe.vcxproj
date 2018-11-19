@@ -114,6 +114,7 @@
     <ClCompile Include="pmx\PmxVertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="pmx\PmxException.h" />
     <ClInclude Include="pmx\PmxDisplayPane.hpp" />
     <ClInclude Include="pmx\Pmx.hpp" />
     <ClInclude Include="pmx\PmxBone.hpp" />

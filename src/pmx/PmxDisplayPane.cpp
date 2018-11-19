@@ -16,8 +16,8 @@ namespace vitriol
 
 	void PmxDisplayData::Parse(std::istream* stream, PmxGlobalSettings settings)
 	{
-		this->displayNameLocal = ReadString(stream, settings.textEncoding);
-		this->displayNameUniversal = ReadString(stream, settings.textEncoding);
+		this->nameLocal = ReadString(stream, settings.textEncoding);
+		this->nameUniversal = ReadString(stream, settings.textEncoding);
 		stream->read(reinterpret_cast<char*>(&this->isSpecialFrame), sizeof(this->isSpecialFrame));
 		int frameCount;
 		stream->read(reinterpret_cast<char*>(&frameCount), sizeof(frameCount));

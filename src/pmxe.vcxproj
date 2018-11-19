@@ -114,7 +114,7 @@
     <ClCompile Include="pmx\PmxVertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pmx\PmxException.h" />
+    <ClInclude Include="pmx\PmxException.hpp" />
     <ClInclude Include="pmx\PmxDisplayPane.hpp" />
     <ClInclude Include="pmx\Pmx.hpp" />
     <ClInclude Include="pmx\PmxBone.hpp" />
@@ -127,6 +127,7 @@
     <ClInclude Include="pmx\PmxSoftBody.hpp" />
     <ClInclude Include="pmx\PmxTypes.hpp" />
     <ClInclude Include="pmx\PmxVertex.hpp" />
+    <ClInclude Include="StreamHelper.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

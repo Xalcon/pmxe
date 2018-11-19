@@ -2,7 +2,7 @@
 #include <istream>
 #include <locale>
 #include <codecvt>
-#include "PmxException.h"
+#include "PmxException.hpp"
 
 namespace vitriol
 {

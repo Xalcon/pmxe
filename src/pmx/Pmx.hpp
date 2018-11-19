@@ -46,8 +46,6 @@ namespace vitriol
 			std::vector<PmxSoftBodyData> softbodyData;
 
             void Parse(std::istream* stream);
-            void Save(std::ostream* stream);
+            void Save(std::ostream& stream);
     };
-    
-    std::string ReadString(std::istream* stream, PmxStringEncoding sourceEncoding);
 }

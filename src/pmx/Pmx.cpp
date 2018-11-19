@@ -1,6 +1,7 @@
 #include "Pmx.hpp"
 #include "PmxHelper.hpp"
-#include "PmxException.h"
+#include "PmxException.hpp"
+#include "../StreamHelper.hpp"
 
 namespace vitriol
 {
@@ -122,5 +123,11 @@ namespace vitriol
 				this->softbodyData.emplace_back(softbody);
 			}
 		}
+    }
+
+    void Pmx::Save(std::ostream& stream)
+    {
+        streamWrite(stream, "PMX ");
+        streamWrite(stream, this->version);
     }
 }

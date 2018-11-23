@@ -14,15 +14,6 @@
 
 namespace vitriol
 {
-
-    /*class IPmxParsable
-    {
-        public:
-            virtual ~IPmxParsable() {}
-            virtual void Parse(std::istream *stream, PmxGlobalSettings settings) = 0;
-    };*/
-
-
     class Pmx
     {
         public:

@@ -39,6 +39,7 @@ namespace vitriol
 		float frictionForce;
 		PmxPhysicsMode physicsMode;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

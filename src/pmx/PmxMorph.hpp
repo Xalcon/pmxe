@@ -35,8 +35,9 @@ namespace vitriol
 	class PmxMorphOffsetData
 	{
 	public:
-		virtual ~PmxMorphOffsetData() {}
-		virtual void Parse(std::istream* stream, PmxGlobalSettings settings) = 0;
+		virtual ~PmxMorphOffsetData() = default;
+		virtual void Parse(std::istream& stream, PmxGlobalSettings settings) = 0;
+		virtual void Save(std::ostream& stream, PmxGlobalSettings settings) const = 0;
 	};
 
 	class PmxGroupMorph : public PmxMorphOffsetData
@@ -45,7 +46,8 @@ namespace vitriol
 		int32_t morphIndex;
 		float influence;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	class PmxVertexMorph : public PmxMorphOffsetData
@@ -54,7 +56,8 @@ namespace vitriol
 		int32_t vertexIndex;
 		Vec3 translation;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	class PmxBoneMorph : public PmxMorphOffsetData
@@ -64,7 +67,8 @@ namespace vitriol
 		Vec3 translation;
 		Vec4 rotation;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	class PmxUVMorph : public PmxMorphOffsetData
@@ -73,7 +77,8 @@ namespace vitriol
 		int32_t vertexIndex;
 		Vec4 data;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	enum class PmxMaterialMorphValueBlendingMode : uint8_t
@@ -97,7 +102,8 @@ namespace vitriol
 		Vec4 environmentTint;
 		Vec4 toonTint;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	class PmxFlipMorph : public PmxMorphOffsetData
@@ -106,7 +112,8 @@ namespace vitriol
 		int32_t morphIndex;
 		float influence;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
 	class PmxImpulseMorph : public PmxMorphOffsetData
@@ -117,10 +124,11 @@ namespace vitriol
 		Vec3 movementSpeed;
 		Vec3 rotationTorque;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const override;
 	};
 
-	class PmxMorphData// : private IPmxParsable
+	class PmxMorphData
 	{
 	public:
 		std::string nameLocal;
@@ -129,6 +137,7 @@ namespace vitriol
 		PmxMorphType morphType;
 		std::vector<std::unique_ptr<PmxMorphOffsetData>> dataList;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

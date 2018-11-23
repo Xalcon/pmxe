@@ -5,10 +5,10 @@
 
 namespace vitriol
 {
-	template <class T> T Limit(T value, T min, T max, T fallback);
-	int32_t ReadIndex(std::istream* stream, uint8_t typeSize);
-	std::string ReadString(std::istream* stream, PmxStringEncoding sourceEncoding);
+	template <class T> T limit(T value, T min, T max, T fallback);
+	int32_t readIndex(std::istream& stream, uint8_t typeSize);
+	std::string readString(std::istream& stream, PmxStringEncoding sourceEncoding);
 
-	void WriteIndex(std::ostream& stream, int32_t value, uint8_t typeSize);
-	void WriteString(std::ostream& stream, std::string& string, PmxStringEncoding targetEncoding);
+	void writeIndex(std::ostream& stream, int32_t value, uint8_t typeSize);
+	void writeString(std::ostream& stream, std::string& string, PmxStringEncoding targetEncoding);
 }

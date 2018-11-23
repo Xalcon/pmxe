@@ -20,7 +20,8 @@ namespace vitriol
 		PmxDisplayFrameType frameType;
 		int32_t index;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxDisplayData
@@ -31,6 +32,7 @@ namespace vitriol
 		uint8_t isSpecialFrame;
 		std::vector<PmxFrameData> frames;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

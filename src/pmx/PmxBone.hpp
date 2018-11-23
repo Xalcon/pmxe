@@ -29,7 +29,8 @@ namespace vitriol
 		int32_t parentIndex;
 		float parentInfluence;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxBoneFixedAxis
@@ -37,7 +38,8 @@ namespace vitriol
 	public:
 		Vec3 axisDirection;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream);
+		void Save(std::ostream& stream) const;
 	};
 
 	class PmxBoneLocalCoordinate
@@ -46,7 +48,8 @@ namespace vitriol
 		Vec3 x;
 		Vec3 z;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream);
+		void Save(std::ostream& stream) const;
 	};
 
 	class PmxBoneExternalParent
@@ -54,7 +57,8 @@ namespace vitriol
 	public:
 		int32_t parentIndex;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxBoneIkAngleLimit
@@ -63,7 +67,8 @@ namespace vitriol
 		Vec3 min; // minimum angle in radians
 		Vec3 max; // maximum angle in radians
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream);
+		void Save(std::ostream& stream) const;
 	};
 
 	class PmxBoneIkLinks
@@ -73,7 +78,8 @@ namespace vitriol
 		uint8_t hasLimits; // When equal to 1, use angle limits
 		PmxBoneIkAngleLimit angleLimits; // Used if has limits is 1. See IK Angle Limit
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxBoneIk
@@ -85,7 +91,8 @@ namespace vitriol
 		int32_t linkCount; // How many bones this IK links with
 		std::vector<PmxBoneIkLinks> ikLinks;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxBoneData// : private IPmxParsable
@@ -104,6 +111,7 @@ namespace vitriol
 		PmxBoneExternalParent externalParent;
 		PmxBoneIk ikBoneData;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

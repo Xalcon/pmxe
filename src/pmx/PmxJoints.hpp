@@ -34,6 +34,7 @@ namespace vitriol
 		Vec3 positionSpring;
 		Vec3 rotationSpring;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

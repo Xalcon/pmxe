@@ -33,7 +33,8 @@ namespace vitriol
 	class PmxMaterial// : private IPmxParsable
 	{
 	public:
-		PmxMaterial() : textureIndex(0), environmentIndex(0), toonValue(0), surfaceCount(0) {};
+		PmxMaterial() : textureIndex(0), environmentIndex(0), toonValue(0), surfaceCount(0) {}
+		
 		std::string nameLocal; // Handy name for the material (Usually Japanese)
 		std::string nameUniversal; // Handy name for the material (Usually English)
 		Vec4 diffuseColor; // RGBA colour (Alpha will set a semi-transparent material)
@@ -56,6 +57,7 @@ namespace vitriol
 							  // through to the size of the current material. If you add up all the surface counts for all materials
 							  // you should end up with the total number of surfaces.
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings globalSettings);
 	};
 }

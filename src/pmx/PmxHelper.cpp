@@ -1,3 +1,5 @@
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
+
 #include "PmxHelper.hpp"
 #include <istream>
 #include <locale>
@@ -5,66 +7,71 @@
 #include "PmxException.hpp"
 #include "../StreamHelper.hpp"
 
-std::locale::id std::codecvt<char16_t, char, _Mbstatet>::id;
-
 namespace vitriol
 {
-	template <class T> T Limit(T value, T min, T max, T fallback)
+	template <class T> T limit(T value, T min, T max, T fallback)
 	{
 		return value >= min ? value <= max ? value : fallback : fallback;
 	}
 
-
 #if _MSC_VER >= 1900
 
-
-	std::string utf16_to_utf8(const std::u16string& str)
+	std::string toUTF8(const std::u16string& str)
 	{
+		// ReSharper disable CppDeprecatedEntity
 		std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
+		// ReSharper restore CppDeprecatedEntity
+
 		const auto p = reinterpret_cast<const int16_t *>(str.data());
 		return convert.to_bytes(p, p + str.size());
 	}
 
-	std::u16string utf8_to_utf16(const std::string& str)
+	std::u16string toUTF16(const std::string& str)
 	{
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+		// ReSharper disable CppDeprecatedEntity
+		std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
+		// ReSharper restore CppDeprecatedEntity
+
 		const auto p = reinterpret_cast<const char *>(str.data());
-		return convert.from_bytes(p, p + str.size());
+		auto x = convert.from_bytes(p, p + str.size());
+		return std::u16string(x.begin(), x.end());
 	}
 
 #else
 
-	std::string utf16_to_utf8(std::u16string& utf16_string)
+	std::string toUTF8(const std::u16string& str)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-		return convert.to_bytes(utf16_string);
+		return convert.to_bytes(str);
 	}
 
-	std::u16string utf8_to_utf16(const std::string& str)
+	std::u16string toUTF16(const std::string& str)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+
 		const auto p = reinterpret_cast<const char *>(str.data());
 		return convert.from_bytes(p, p + str.size());
 	}
 
 #endif
 
-	int32_t ReadIndex(std::istream* stream, uint8_t typeSize)
+	int32_t readIndex(std::istream& stream, uint8_t typeSize)
 	{
-		uint32_t tmp;
-		stream->read(reinterpret_cast<char*>(&tmp), typeSize);
-
+		uint32_t tmp = 0;
+		stream.read(reinterpret_cast<char*>(&tmp), typeSize);
+		
 		// This is wrong for type4 vertices, since vertices have a upper limit of UINT32_MAX
 		// but we treat them like the others with an upper limit of INT32_MAX
 		// this means our parser can only properly parse models with less than 2 million vertices
 		const uint32_t upperLimit = (2 << (6 + 8 * (typeSize - 1))) - 1;
-		return static_cast<int32_t>(Limit(tmp, 0u, upperLimit, -1u));
+#pragma warning(suppress: 4146)
+		return static_cast<int32_t>(limit(tmp, 0u, upperLimit, -1u));
 	}
 
-	std::string ReadString(std::istream* stream, PmxStringEncoding sourceEncoding)
+	std::string readString(std::istream& stream, PmxStringEncoding sourceEncoding)
 	{
 		uint32_t size;
-		stream->read(reinterpret_cast<char*>(&size), sizeof(size));
+		stream.read(reinterpret_cast<char*>(&size), sizeof(size));
 		if (size == 0) return "";
 
 		if (sourceEncoding == PmxStringEncoding::UTF16LittleEndian)
@@ -74,11 +81,10 @@ namespace vitriol
 
 			std::vector<char16_t> buffer;
 			buffer.resize(size);
-			stream->read(reinterpret_cast<char*>(buffer.data()), size);
+			stream.read(reinterpret_cast<char*>(buffer.data()), size);
 
 			const std::u16string source(buffer.begin(), buffer.end());
-			auto dst = utf16_to_utf8(source);
-			return dst;
+			return toUTF8(source);
 		}
 		
 		if (sourceEncoding == PmxStringEncoding::UTF8)
@@ -86,18 +92,32 @@ namespace vitriol
 			std::vector<char> buffer;
 			buffer.resize(size);
 
-			stream->read(static_cast<char*>(buffer.data()), size);
+			stream.read(static_cast<char*>(buffer.data()), size);
 			return std::string(buffer.begin(), buffer.end());
 		}
 
 		throw PMX_EXCEPTION("Invalid string encoding");
 	}
 
-	void WriteIndex(std::ostream& stream, int32_t value, uint8_t typeSize)
+	void writeIndex(std::ostream& stream, const int32_t value, const uint8_t typeSize)
 	{
+		switch(typeSize)
+		{
+		case 1:
+			streamWrite(stream, static_cast<int8_t>(value));
+			return;
+		case 2:
+			streamWrite(stream, static_cast<int16_t>(value));
+			return;
+		case 4:
+			streamWrite(stream, value);
+			return;
+		default:
+			throw PMX_EXCEPTION("Invalid type size");
+		}
 	}
 
-	void WriteString(std::ostream& stream, std::string& str, PmxStringEncoding targetEncoding)
+	void writeString(std::ostream& stream, std::string& str, PmxStringEncoding targetEncoding)
 	{
 		if(str.length() == 0)
 		{
@@ -107,7 +127,7 @@ namespace vitriol
 
 		if(targetEncoding == PmxStringEncoding::UTF16LittleEndian)
 		{
-			std::u16string uStr = utf8_to_utf16(str);
+			auto uStr = toUTF16(str);
 			streamWrite(stream, static_cast<int32_t>(uStr.length()));
 			streamWrite(stream, uStr.c_str(), uStr.length());
 			return;

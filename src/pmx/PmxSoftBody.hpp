@@ -32,14 +32,16 @@ namespace vitriol
 		int32_t rigidBodyIndex;
 		int32_t vertexIndex;
 		uint8_t nearMode;
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	class PmxSoftBodyVertexPin
 	{
 	public:
 		int32_t vertexIndex;
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 
 	typedef struct PmxSoftBodyConfig
@@ -90,6 +92,7 @@ namespace vitriol
 		std::vector<PmxSoftBodyAnchorRigidBody> anchorRigidBodies;
 		std::vector<PmxSoftBodyVertexPin> vertexPins;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings);
 	};
 }

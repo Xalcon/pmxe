@@ -17,13 +17,13 @@ namespace vitriol
 
 
 	template <class T>
-	std::ostream& streamWrite(std::ostream& stream, T data)
+	std::ostream& streamWrite(std::ostream& stream, const T& data)
 	{
 		return stream.write(reinterpret_cast<const char*>(&data), sizeof(data));
 	};
 
 	template <class T>
-	std::ostream& streamWrite(std::ostream& stream, T data, std::streamsize count)
+	std::ostream& streamWrite(std::ostream& stream, const T& data, std::streamsize count)
 	{
 		return stream.write(reinterpret_cast<const char*>(&data), count);
 	};

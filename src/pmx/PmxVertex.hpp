@@ -16,8 +16,9 @@ namespace vitriol
 	class PmxVertexSkinning
 	{
 	public:
-		virtual void Parse(std::istream* stream, PmxGlobalSettings settings) = 0;
 		virtual ~PmxVertexSkinning() {}
+		virtual void Parse(std::istream& stream, PmxGlobalSettings settings) = 0;
+		virtual void Save(std::ostream& stream, PmxGlobalSettings settings) = 0;
 	};
 
 	class PmxVertexSkinningBDEF1 : public PmxVertexSkinning
@@ -25,7 +26,8 @@ namespace vitriol
 	public:
 		int32_t boneIndex;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) override;
 	};
 
 	class PmxVertexSkinningBDEF2 : public PmxVertexSkinning
@@ -36,7 +38,8 @@ namespace vitriol
 		// Bone 2 weight = 1.0 - Bone 1 weight
 		float bone1Weight;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) override;
 	};
 
 	class PmxVertexSkinningBDEF4 : public PmxVertexSkinning
@@ -52,7 +55,8 @@ namespace vitriol
 		float bone3Weight;
 		float bone4Weight;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) override;
 	};
 
 	// Spherical Deform Blending
@@ -66,7 +70,8 @@ namespace vitriol
 		Vec3 r0;
 		Vec3 r1;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) override;
 	};
 
 	// Dual quaternion deform blending, v2.1+
@@ -83,7 +88,8 @@ namespace vitriol
 		float bone3Weight;
 		float bone4Weight;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings) override;
+		void Save(std::ostream& stream, PmxGlobalSettings settings) override;
 	};
 
 	class PmxVertex// : private IPmxParsable
@@ -97,6 +103,7 @@ namespace vitriol
 		std::unique_ptr<PmxVertexSkinning> skinningInfo;
 		float edgeScale;
 
-		void Parse(std::istream* stream, PmxGlobalSettings settings);
+		void Parse(std::istream& stream, PmxGlobalSettings settings);
+		void Save(std::ostream& stream, PmxGlobalSettings settings) const;
 	};
 }

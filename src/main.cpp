@@ -83,8 +83,8 @@ extern "C" {
 		try
 		{
 			pmx.Parse(file);
-            const size_t len = file.tellg();
-            printf("Read %zu bytes from %s (Total size: %llu bytes)\n", len, filePath, totalFileSize);
+            const std::streamoff len = file.tellg();
+            printf("Read %u bytes from %s (Total size: %llu bytes)\n", static_cast<uint32_t>(len), filePath, totalFileSize);
 		}
 		catch(vitriol::PmxException& e)
 		{
@@ -98,9 +98,11 @@ extern "C" {
 			return 1;
 		}
         file.close();
-
-        std::ofstream outFile;
-        outFile.open("D:\\test.pmx.out", std::ifstream::out | std::ifstream::binary);
+		
+		std::ofstream outFile;
+		outFile.open(std::string(filePath) + ".out", std::ifstream::out | std::ifstream::binary);
+		if (outFile.fail())
+			throw "Unable to open file";
         pmx.Save(outFile);
 		outFile.close();
         
@@ -112,9 +114,10 @@ extern "C" {
 
 #ifdef  _MSC_VER
 #include <Windows.h>
-void main()
+int main(int argc, const char* argv[])
 {
 	SetConsoleOutputCP(65001);
-	ProcessFile(R"(D:\Dev\Emscripten\test.pmx)");
+	ProcessFile(argv[1]);
+	return 0;
 }
 #endif

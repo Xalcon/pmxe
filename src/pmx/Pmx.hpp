@@ -45,7 +45,7 @@ namespace vitriol
 			std::vector<PmxJointData> joints;
 			std::vector<PmxSoftBodyData> softbodyData;
 
-            void Parse(std::istream* stream);
+            void Parse(std::istream& stream);
             void Save(std::ostream& stream);
     };
 }

@@ -82,7 +82,7 @@ extern "C" {
         vitriol::Pmx pmx;
 		try
 		{
-			pmx.Parse(&file);
+			pmx.Parse(file);
             const size_t len = file.tellg();
             printf("Read %zu bytes from %s (Total size: %llu bytes)\n", len, filePath, totalFileSize);
 		}
@@ -104,7 +104,7 @@ extern "C" {
         pmx.Save(outFile);
 		outFile.close();
         
-        PrintPmxInfo(pmx);
+        //PrintPmxInfo(pmx);
 
         return 0;
     }

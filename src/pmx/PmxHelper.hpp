@@ -11,4 +11,6 @@ namespace vitriol
 
 	void writeIndex(std::ostream& stream, int32_t value, uint8_t typeSize);
 	void writeString(std::ostream& stream, std::string& string, PmxStringEncoding targetEncoding);
+
+	std::string toUTF8(const std::u16string& str);
 }

@@ -2,7 +2,9 @@
 out
 **/.vs
 **/Debug
+**/Release
 
 **/*.vcxproj.filters
 **/*.vcxproj.user
 **/*.DotSettings.user
+src/x64/

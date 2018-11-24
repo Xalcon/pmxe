@@ -3,6 +3,8 @@
 #include <fstream>
 #include "pmx/Pmx.hpp"
 #include "pmx/PmxException.hpp"
+#include "vmd/Vmd.hpp"
+#include "../extern/UniJIS/out/ShiftJisUtf16.h"
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -117,7 +119,45 @@ extern "C" {
 int main(int argc, const char* argv[])
 {
 	SetConsoleOutputCP(65001);
-	ProcessFile(argv[1]);
+	//ProcessFile(argv[1]);
+
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	LARGE_INTEGER start;
+	QueryPerformanceCounter(&start);
+
+	std::ifstream stream(argv[1]);
+	vmd::Vmd vmd;
+	vmd.Parse(stream);
+
+	printf("Magic: %*.s\n", 30, vmd.header.magic);
+	printf("Name: %*.s\n", 20, vmd.header.name);
+	printf("Bone Animation KeyFrames: %d\n", vmd.frames.size());
+	printf("Morph Animation KeyFrames: %d\n", vmd.morphs.size());
+
+	int total = 0;
+
+	for (auto& frame : vmd.frames)
+	{
+		char* s = reinterpret_cast<char*>(frame.boneName);
+		char16_t o[15];
+		memset(o, 0, 15);
+		const int len = ShiftJisToUtf16(s, 15, o, 15);
+		std::u16string str16(o, o + len);
+		std::string str8 = vitriol::toUTF8(str16);
+		total += str8.length();
+	}
+	LARGE_INTEGER end;
+	QueryPerformanceCounter(&end);
+	auto delta = end.QuadPart - start.QuadPart;
+	double time = double(delta) / freq.QuadPart;
+
+
+	printf("Total: %d\n", total);
+	printf("Iterative Conversion done in %f\n", time);
+
+	system("pause");
+
 	return 0;
 }
 #endif

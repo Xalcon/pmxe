@@ -3,15 +3,21 @@
 namespace vitriol
 {
     template <class T>
-    std::istream& streamRead(std::istream& stream, T data)
+    std::istream& streamRead(std::istream& stream, T& data)
     {
         return stream.read(reinterpret_cast<char*>(&data), sizeof(data));
     };
 
     template <class T>
-    std::istream& streamRead(std::istream& stream, T data, std::streamsize count)
+    std::istream& streamRead(std::istream& stream, T& data, std::streamsize count)
     {
         return stream.read(reinterpret_cast<char*>(&data), count);
+    };
+
+    template <class T>
+    std::istream& streamRead(std::istream& stream, T* data, std::streamsize count)
+    {
+        return stream.read(reinterpret_cast<char*>(data), count);
     };
 
 

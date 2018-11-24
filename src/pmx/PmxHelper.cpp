@@ -15,40 +15,33 @@ namespace vitriol
 	}
 
 #if _MSC_VER >= 1900
+	// ReSharper disable CppDeprecatedEntity
+	std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
+	// ReSharper restore CppDeprecatedEntity
 
 	std::string toUTF8(const std::u16string& str)
 	{
-		// ReSharper disable CppDeprecatedEntity
-		std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
-		// ReSharper restore CppDeprecatedEntity
-
 		const auto p = reinterpret_cast<const int16_t *>(str.data());
 		return convert.to_bytes(p, p + str.size());
 	}
 
 	std::u16string toUTF16(const std::string& str)
 	{
-		// ReSharper disable CppDeprecatedEntity
-		std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
-		// ReSharper restore CppDeprecatedEntity
-
 		const auto p = reinterpret_cast<const char *>(str.data());
 		auto x = convert.from_bytes(p, p + str.size());
 		return std::u16string(x.begin(), x.end());
 	}
 
 #else
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
 
 	std::string toUTF8(const std::u16string& str)
 	{
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
 		return convert.to_bytes(str);
 	}
 
 	std::u16string toUTF16(const std::string& str)
 	{
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-
 		const auto p = reinterpret_cast<const char *>(str.data());
 		return convert.from_bytes(p, p + str.size());
 	}
